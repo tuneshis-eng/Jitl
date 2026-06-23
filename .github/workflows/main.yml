@@ -1,6 +1,8 @@
-name: FORCE BUILD APK
+name: Build APK
 
 on:
+  push:
+    branches: [ main, master, develop ]
   workflow_dispatch:
 
 jobs:
@@ -8,28 +10,23 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '18'
       
-      - name: FORCE INSTALL
+      - name: Install
         run: |
           npm install --force
           npm install -g eas-cli
       
-      - name: FORCE BUILD
-        run: |
-          npx expo install
-          eas build --platform android --profile preview --non-interactive
+      - name: Build
+        run: eas build --platform android --profile preview --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       
-      - name: UPLOAD APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: app.apk
+          name: app-debug
           path: '*.apk'
