@@ -33,7 +33,7 @@ jobs:
       - name: Clean and Install dependencies
         run: |
           rm -rf node_modules package-lock.json
-          npm ci
+          npm install
 
       - name: Clean Android build artifacts
         run: |
