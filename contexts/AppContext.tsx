@@ -37,26 +37,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadConfig();
+    const init = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("app_config");
+
+        if (stored) {
+          setConfig({ ...DEFAULT_CONFIG, ...JSON.parse(stored) });
+        }
+      } catch (e) {
+        console.log("Config load error:", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    init();
   }, []);
 
-  const loadConfig = async () => {
-    try {
-      const stored = await AsyncStorage.getItem("app_config");
-      if (stored) {
-        setConfig({ ...DEFAULT_CONFIG, ...JSON.parse(stored) });
-      }
-    } catch {
-      // use defaults
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const updateConfig = async (updates: Partial<AppConfig>) => {
-    const newConfig = { ...config, ...updates };
-    setConfig(newConfig);
-    await AsyncStorage.setItem("app_config", JSON.stringify(newConfig));
+    try {
+      const newConfig = { ...config, ...updates };
+      setConfig(newConfig);
+      await AsyncStorage.setItem("app_config", JSON.stringify(newConfig));
+    } catch (e) {
+      console.log("Config save error:", e);
+    }
   };
 
   return (
