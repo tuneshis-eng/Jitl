@@ -1,0 +1,644 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: AgenceProspect API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: leads
+    description: Lead management
+  - name: scrape
+    description: Scraping operations
+  - name: generate
+    description: AI message generation
+  - name: send
+    description: WhatsApp messaging
+  - name: schedule
+    description: Appointment scheduling
+  - name: logs
+    description: Application logs
+  - name: config
+    description: App configuration
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /v1/leads:
+    get:
+      operationId: getLeads
+      tags: [leads]
+      summary: List all leads
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [new, contacted, scheduled, rejected]
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of leads
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadsResponse"
+    post:
+      operationId: createLead
+      tags: [leads]
+      summary: Create a lead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLeadRequest"
+      responses:
+        "201":
+          description: Lead created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /v1/leads/{id}:
+    get:
+      operationId: getLeadById
+      tags: [leads]
+      summary: Get a lead by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lead details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+    put:
+      operationId: updateLead
+      tags: [leads]
+      summary: Update a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLeadRequest"
+      responses:
+        "200":
+          description: Lead updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+    delete:
+      operationId: deleteLead
+      tags: [leads]
+      summary: Delete a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /v1/scrape:
+    post:
+      operationId: startScrape
+      tags: [scrape]
+      summary: Start scraping Mubawab listings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScrapeRequest"
+      responses:
+        "200":
+          description: Scraping result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScrapeResponse"
+
+  /v1/generate:
+    post:
+      operationId: generateMessage
+      tags: [generate]
+      summary: Generate a personalized AI message for a lead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateRequest"
+      responses:
+        "200":
+          description: Generated message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateResponse"
+
+  /v1/send:
+    post:
+      operationId: sendMessage
+      tags: [send]
+      summary: Send a WhatsApp message to a lead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendRequest"
+      responses:
+        "200":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendResponse"
+
+  /v1/webhook:
+    post:
+      operationId: whatsappWebhook
+      tags: [send]
+      summary: WhatsApp webhook callback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookPayload"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /v1/schedule:
+    post:
+      operationId: createSchedule
+      tags: [schedule]
+      summary: Create an appointment for a lead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduleRequest"
+      responses:
+        "201":
+          description: Appointment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Schedule"
+
+  /v1/logs:
+    get:
+      operationId: getLogs
+      tags: [logs]
+      summary: Get application logs
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        "200":
+          description: Logs list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogsResponse"
+
+  /v1/config:
+    get:
+      operationId: getConfig
+      tags: [config]
+      summary: Get app configuration
+      responses:
+        "200":
+          description: Configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+    put:
+      operationId: updateConfig
+      tags: [config]
+      summary: Update app configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateConfigRequest"
+      responses:
+        "200":
+          description: Updated configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    Lead:
+      type: object
+      properties:
+        id:
+          type: string
+        phone:
+          type: string
+        title:
+          type: string
+        price:
+          type: string
+        surface:
+          type: string
+        rooms:
+          type: string
+        city:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+        status:
+          type: string
+          enum: [new, contacted, scheduled, rejected]
+        confidenceScore:
+          type: number
+        isAgency:
+          type: boolean
+        generatedMessage:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - phone
+        - title
+        - city
+        - status
+        - createdAt
+
+    LeadsResponse:
+      type: object
+      properties:
+        leads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+        total:
+          type: integer
+      required:
+        - leads
+        - total
+
+    CreateLeadRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+        title:
+          type: string
+        price:
+          type: string
+        surface:
+          type: string
+        rooms:
+          type: string
+        city:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+        isAgency:
+          type: boolean
+      required:
+        - phone
+        - title
+        - city
+
+    UpdateLeadRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [new, contacted, scheduled, rejected]
+        generatedMessage:
+          type: string
+        confidenceScore:
+          type: number
+        isAgency:
+          type: boolean
+
+    ScrapeRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          description: Mubawab search URL to scrape
+        maxLeads:
+          type: integer
+          default: 10
+          description: Maximum number of leads to extract
+        groqApiKey:
+          type: string
+          description: Optional Groq API key to auto-generate messages
+      required:
+        - url
+        - maxLeads
+
+    ScrapeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        leadsFound:
+          type: integer
+        leads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+        errors:
+          type: array
+          items:
+            type: string
+      required:
+        - success
+        - leadsFound
+        - leads
+
+    GenerateRequest:
+      type: object
+      properties:
+        leadId:
+          type: string
+        lead:
+          $ref: "#/components/schemas/Lead"
+        prompt:
+          type: string
+          description: Custom prompt template
+        groqApiKey:
+          type: string
+        language:
+          type: string
+          enum: [fr, ar]
+          default: fr
+      required:
+        - groqApiKey
+
+    GenerateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        confidenceScore:
+          type: number
+        isAgency:
+          type: boolean
+        suggestedSlots:
+          type: array
+          items:
+            type: string
+      required:
+        - message
+        - confidenceScore
+        - isAgency
+
+    SendRequest:
+      type: object
+      properties:
+        leadId:
+          type: string
+        phone:
+          type: string
+        message:
+          type: string
+        mock:
+          type: boolean
+          default: true
+      required:
+        - phone
+        - message
+
+    SendResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        messageId:
+          type: string
+        mock:
+          type: boolean
+        sentAt:
+          type: string
+      required:
+        - success
+        - sentAt
+
+    ScheduleRequest:
+      type: object
+      properties:
+        leadId:
+          type: string
+        phone:
+          type: string
+        date:
+          type: string
+        time:
+          type: string
+        notes:
+          type: string
+      required:
+        - leadId
+        - date
+        - time
+
+    Schedule:
+      type: object
+      properties:
+        id:
+          type: string
+        leadId:
+          type: string
+        phone:
+          type: string
+        date:
+          type: string
+        time:
+          type: string
+        notes:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - leadId
+        - date
+        - time
+        - createdAt
+
+    LogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        level:
+          type: string
+          enum: [info, warn, error, success]
+        message:
+          type: string
+        details:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - level
+        - message
+        - createdAt
+
+    LogsResponse:
+      type: object
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogEntry"
+      required:
+        - logs
+
+    Config:
+      type: object
+      properties:
+        backendUrl:
+          type: string
+        groqApiKey:
+          type: string
+        customPrompt:
+          type: string
+        maxLeads:
+          type: integer
+        delayMin:
+          type: integer
+        delayMax:
+          type: integer
+        language:
+          type: string
+          enum: [fr, ar]
+        onboardingDone:
+          type: boolean
+      required:
+        - maxLeads
+        - delayMin
+        - delayMax
+        - language
+        - onboardingDone
+
+    WebhookPayload:
+      type: object
+      properties:
+        object:
+          type: string
+        entry:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      additionalProperties: true
+
+    UpdateConfigRequest:
+      type: object
+      properties:
+        backendUrl:
+          type: string
+        groqApiKey:
+          type: string
+        customPrompt:
+          type: string
+        maxLeads:
+          type: integer
+        delayMin:
+          type: integer
+        delayMax:
+          type: integer
+        language:
+          type: string
+          enum: [fr, ar]
+        onboardingDone:
+          type: boolean
