@@ -14,7 +14,7 @@ import { useColors } from "@/hooks/useColors";
 import {
   useGetLogs,
   getGetLogsQueryKey,
-} from "@workspace/api-client-react";
+} from "../../src/api";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import axios from "axios";
