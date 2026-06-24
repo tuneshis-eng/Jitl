@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build APK
@@ -54,7 +57,7 @@ jobs:
 
             ### Installation
             1. Telecharger le fichier `.apk` ci-dessous
-            2. Activer **Sources inconnues** dans les parametres Android
+            2. Activer Sources inconnues dans les parametres Android
             3. Ouvrir le fichier pour installer
           files: agenceprospect.apk
         env:
