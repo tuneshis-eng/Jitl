@@ -7,8 +7,9 @@ on:
 
 jobs:
   build:
-    name: Build APK with EAS
+    name: Build APK
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,25 +18,58 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install
 
-      - name: Setup EAS
-        uses: expo/expo-github-action@v8
+      - name: Bundle JS
+        run: npx expo export --platform android --output-dir dist-android
+
+      - name: Build APK (release, debug-signed)
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease \
+            -PreactNativeBundleOutput=../dist-android/_expo/static/js/android/ \
+            --no-daemon
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m"
+
+      - name: Find APK
+        id: find_apk
+        run: |
+          APK=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
+          echo "apk_path=$APK" >> $GITHUB_OUTPUT
+          echo "Found APK: $APK"
+          ls -lh "$APK"
+
+      - name: Rename APK
+        run: cp "${{ steps.find_apk.outputs.apk_path }}" agenceprospect-v1.0.${{ github.run_number }}.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          tag_name: v1.0.${{ github.run_number }}
+          name: "AgenceProspect v1.0.${{ github.run_number }}"
+          body: |
+            ## AgenceProspect Android APK
 
-      - name: Initialize EAS project (link or create)
-        run: eas init --force --non-interactive
+            Application de prospection immobilière Mubawab.ma
+
+            ### Installation
+            1. Télécharger le fichier `.apk` ci-dessous
+            2. Activer **Sources inconnues** dans les paramètres Android
+            3. Ouvrir le fichier pour installer
+          files: agenceprospect-v1.0.${{ github.run_number }}.apk
+          draft: false
+          prerelease: false
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Android APK
-        run: eas build --platform android --profile preview --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: APK ready
-        run: echo 'APK disponible sur https://expo.dev/accounts/6karim-web/builds'
