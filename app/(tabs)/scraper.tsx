@@ -14,8 +14,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useAppConfig } from "@/contexts/AppContext";
-import { useStartScrape } from "@workspace/api-client-react";
-import type { Lead } from "@workspace/api-client-react";
+import { useStartScrape } from "../../src/api";
+import type { Lead } from "../../src/api";
 import * as Haptics from "expo-haptics";
 
 const MUBAWAB_PRESETS = [
