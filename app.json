@@ -40,6 +40,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2042b020-fd56-4963-ba87-08c3c0584bc2"
+      }
+    },
+    "owner": "karixs-team"
   }
 }
