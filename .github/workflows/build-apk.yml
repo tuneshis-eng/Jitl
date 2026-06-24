@@ -18,19 +18,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          run_install: false
-
-      - name: Install all workspace dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
-        continue-on-error: true
-
-      - name: Install dependencies (fallback)
-        run: pnpm install --no-frozen-lockfile --ignore-scripts
-        if: failure()
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
 
       - name: Setup EAS
         uses: expo/expo-github-action@v8
@@ -39,9 +28,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build Android APK
-        working-directory: artifacts/mobile
         run: eas build --platform android --profile preview --non-interactive
 
       - name: Show APK link
-        working-directory: artifacts/mobile
-        run: eas build:list --platform android --limit 1 --non-interactive
+        run: echo 'APK disponible sur https://expo.dev/accounts/6karim-web/builds'
