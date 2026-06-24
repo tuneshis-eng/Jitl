@@ -17,7 +17,7 @@ import {
   useGetLeads,
   useDeleteLead,
   type Lead,
-} from "@workspace/api-client-react";
+} from "../../src/api";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 
