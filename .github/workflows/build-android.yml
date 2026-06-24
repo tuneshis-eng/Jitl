@@ -1,25 +1,14 @@
-name: Build Android APK
+name: Build APK
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -27,36 +16,25 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-      - name: Clean and Install dependencies
-        run: |
-          rm -rf node_modules package-lock.json
-          npm install
+      - name: Install dependencies
+        run: npm install --force
 
-      - name: Clean Android build artifacts
-        run: |
-          cd android
-          ./gradlew clean
-          cd ..
+      - name: Prebuild Android
+        run: npx expo prebuild --platform android --clean
 
       - name: Build APK
-        run: npm run build
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
-      - name: Upload APK artifact
-        if: success()
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-apk
-          path: android/app/build/outputs/apk/**/*.apk
-          retention-days: 30
-
-      - name: Build status notification
-        if: always()
-        run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Build succeeded! APK ready for download"
-          else
-            echo "❌ Build failed - Check logs above"
-          fi
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/*.apk
