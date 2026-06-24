@@ -26,20 +26,20 @@ jobs:
           java-version: 17
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build APK with Gradle
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleRelease --no-daemon --stacktrace
         env:
           GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4g
 
       - name: Collect APK
         run: |
           APK=$(find android/app/build/outputs/apk -name "*.apk" | head -1)
-          echo "APK: $APK"
+          echo "APK found: $APK"
           ls -lh "$APK"
           cp "$APK" agenceprospect.apk
 
