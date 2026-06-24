@@ -17,7 +17,6 @@ import {
   useGetLeads,
   useGenerateMessage,
   useSendMessage,
-  useGetConfigQueryKey,
 } from "../../src/api";
 import type { Lead } from "../../src/api";
 import { useQueryClient } from "@tanstack/react-query";
