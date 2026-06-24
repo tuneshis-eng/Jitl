@@ -1,34 +1,47 @@
 name: Build Android APK
 
-  on:
-    push:
-      branches: [main]
-    workflow_dispatch:
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
-  jobs:
-    build:
-      name: Build APK
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
+jobs:
+  build:
+    name: Build APK with EAS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-        - uses: actions/setup-node@v4
-          with:
-            node-version: 20
-            cache: npm
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-        - name: Install dependencies
-          run: npm install
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
 
-        - name: Setup EAS
-          uses: expo/expo-github-action@v8
-          with:
-            eas-version: latest
-            token: ${{ secrets.EXPO_TOKEN }}
+      - name: Install all workspace dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+        continue-on-error: true
 
-        - name: Build Android APK
-          run: eas build --platform android --profile preview --non-interactive
+      - name: Install dependencies (fallback)
+        run: pnpm install --no-frozen-lockfile --ignore-scripts
+        if: failure()
 
-        - name: Show download link
-          run: eas build:list --platform android --limit 1 --json --non-interactive
-  
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Android APK
+        working-directory: artifacts/mobile
+        run: eas build --platform android --profile preview --non-interactive
+
+      - name: Show APK link
+        working-directory: artifacts/mobile
+        run: eas build:list --platform android --limit 1 --non-interactive
